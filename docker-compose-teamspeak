@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## Include functions file
+. ./sharedfunctions
+
 ## DEFAULTS VARIABLES ##
 
 declare -r DEFAULT_TS_VOICE_PORT=9987
@@ -9,33 +12,27 @@ declare -r DEFAULT_TS_DNS_PORT=41144
 
 ## VARIABLES ##
 
-TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
-TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
-TS_FILE_PORT=${DEFAULT_TS_FILE_PORT}
-TS_DNS_PORT=${DEFAULT_TS_DNS_PORT}
-PORT_DIFF=0
+declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
+declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
+declare -i TS_FILE_PORT=${DEFAULT_TS_FILE_PORT}
+declare -i TS_DNS_PORT=${DEFAULT_TS_DNS_PORT}
+declare -i PORT_DIFF
 
 ## PARSING ARGS ##
 
 TS_VOICE_PORT=$1
 ACTION=$2
-ARGS=$3
+shift 2
+ARGS=$@
 
 ## FUNCTIONS ##
 
-isnumber() {
-    regex='^[0-9]+$'
-    if ! [[ $1 =~ $regex ]] ; then
-        _usage >&2; exit 1
-    fi
-}
-
 _start() {
-    docker-compose start ${ARGS}
+    docker-compose -p teamspeak-${TS_VOICE_PORT} start ${ARGS}
 }
 
 _stop() {
-    docker-compose stop ${ARGS}
+    docker-compose -p teamspeak-${TS_VOICE_PORT} stop ${ARGS}
 }
 
 _up() {
@@ -43,11 +40,11 @@ _up() {
 }
 
 _down() {
-    docker-compose down ${ARGS}
+    docker-compose -p teamspeak-${TS_VOICE_PORT} down ${ARGS}
 }
 
 _portDiff() {
-    isnumber $TS_VOICE_PORT
+    isnumber "$TS_VOICE_PORT" && : || _usage
     PORT_DIFF=$(( TS_VOICE_PORT - DEFAULT_TS_VOICE_PORT ))
 }
 
@@ -66,6 +63,7 @@ _exportENV() {
 
 _usage() {
     echo "Usage : `basename "$0"` \$VOICE_PORT (default:9987) {start,stop,restart,up,down}"
+    exit 1
 }
 
 ## INIT ##
