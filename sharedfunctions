@@ -1,0 +1,12 @@
+#!bin/bash
+
+## Debug options ##
+# If this options are set to - instead of +, debug option is active
+set +x  # Command traces before executing commands
+set +v  # Shell input lines as they are read
+
+## Check Functions ##
+
+isnumber() {
+    [[ "$1" =~ ^-?[0-9]+$ ]]
+}
