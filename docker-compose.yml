@@ -1,0 +1,26 @@
+version: '2'
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: teamspeak
+      MYSQL_DATABASE: teamspeak
+      MYSQL_USER: teamspeak
+      MYSQL_PASSWORD: teamspeak
+
+  teamspeak:
+    image: oevelgone/teamspeak-sql:lastest
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - "${TS_VOICE_PORT}:9987/udp"
+      - "${TS_FILE_PORT}:30033"
+      - "${TS_QUERY_PORT}:10011"
+      - "${TS_DNS_PORT}:41144"
+    restart: always
+    environment:
+      TS_DB_HOST: db
+      TS_DB_PASSWORD: teamspeak
