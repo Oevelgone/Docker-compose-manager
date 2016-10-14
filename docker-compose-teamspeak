@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Include functions file
-. ./sharedfunctions
+. $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/sharedcontent
 
 ## VARIABLES ##
 
@@ -26,7 +26,7 @@ ARGS=$@
 
 ## FUNCTIONS ##
 
-declare -r DOCKER_CMD="docker-compose -p teamspeak-${TS_VOICE_PORT}"
+declare -r DOCKER_CMD="docker-compose -f ${DOCKERCOMPOSE_FILE} -p teamspeak-${TS_VOICE_PORT}"
 
 _start() {
     ${DOCKER_CMD} start ${ARGS}
