@@ -10,3 +10,8 @@ set +v  # Shell input lines as they are read
 isnumber() {
     [[ "$1" =~ ^-?[0-9]+$ ]]
 }
+
+_usage() {
+    [[ -z "${USAGE_MESSAGE// }" ]] && echo "Undefined variable \$USAGE_MESSAGE in `basename "$0"`." || echo "Usage : `basename "$0"` $USAGE_MESSAGE"
+    exit 1
+}

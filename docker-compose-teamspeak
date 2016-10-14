@@ -3,14 +3,13 @@
 ## Include functions file
 . ./sharedfunctions
 
-## DEFAULTS VARIABLES ##
+## VARIABLES ##
 
 declare -r DEFAULT_TS_VOICE_PORT=9987
 declare -r DEFAULT_TS_QUERY_PORT=10011
 declare -r DEFAULT_TS_FILE_PORT=30033
 declare -r DEFAULT_TS_DNS_PORT=41144
-
-## VARIABLES ##
+declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down}"
 
 declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
 declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
@@ -27,20 +26,39 @@ ARGS=$@
 
 ## FUNCTIONS ##
 
+declare -r DOCKER_CMD="docker-compose -p teamspeak-${TS_VOICE_PORT}"
+
 _start() {
-    docker-compose -p teamspeak-${TS_VOICE_PORT} start ${ARGS}
+    ${DOCKER_CMD} start ${ARGS}
 }
 
 _stop() {
-    docker-compose -p teamspeak-${TS_VOICE_PORT} stop ${ARGS}
+    ${DOCKER_CMD} stop ${ARGS}
 }
 
 _up() {
-    docker-compose -p teamspeak-${TS_VOICE_PORT} up ${ARGS}
+    ${DOCKER_CMD} up ${ARGS}
 }
 
 _down() {
-    docker-compose -p teamspeak-${TS_VOICE_PORT} down ${ARGS}
+    ${DOCKER_CMD} down ${ARGS}
+}
+
+_option() {
+    ${DOCKER_CMD} ${ARGS}
+}
+
+_logs() {
+    case $1 in
+        teamspeak)
+            shift
+            ${DOCKER_CMD} logs $@ | grep 'teamspeak_1';;
+        db)
+            shift
+            ${DOCKER_CMD} logs $@ | grep 'db_1';;
+        *)
+            ${DOCKER_CMD} logs $@;;
+    esac
 }
 
 _portDiff() {
@@ -61,11 +79,6 @@ _exportENV() {
     export TS_DNS_PORT
 }
 
-_usage() {
-    echo "Usage : `basename "$0"` \$VOICE_PORT (default:9987) {start,stop,restart,up,down}"
-    exit 1
-}
-
 ## INIT ##
 
 _portDiff && _updatePorts
@@ -82,6 +95,10 @@ case $ACTION in
         _up;;
     down)
         _down;;
+    option)
+        _option;;
+    logs)
+        _logs $ARGS;;
     *)
         _usage;;
 esac
