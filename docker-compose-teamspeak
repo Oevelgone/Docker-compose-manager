@@ -9,7 +9,7 @@ declare -r DEFAULT_TS_VOICE_PORT=9987
 declare -r DEFAULT_TS_QUERY_PORT=10011
 declare -r DEFAULT_TS_FILE_PORT=30033
 declare -r DEFAULT_TS_DNS_PORT=41144
-declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down}"
+declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down,command,logs[teamspeak|db]} [OPTIONS]"
 
 declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
 declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}

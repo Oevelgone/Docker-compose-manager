@@ -2,8 +2,12 @@
 
 ## Debug options ##
 # If this options are set to - instead of +, debug option is active
-set +x  # Command traces before executing commands
+set -x  # Command traces before executing commands
 set +v  # Shell input lines as they are read
+
+## Global Variables ##
+
+declare -r PROJECT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ## Check Functions ##
 
