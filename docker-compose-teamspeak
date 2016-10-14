@@ -44,7 +44,7 @@ _down() {
     ${DOCKER_CMD} down ${ARGS}
 }
 
-_option() {
+_command() {
     ${DOCKER_CMD} ${ARGS}
 }
 
@@ -95,8 +95,8 @@ case $ACTION in
         _up;;
     down)
         _down;;
-    option)
-        _option;;
+    command)
+        _command;;
     logs)
         _logs $ARGS;;
     *)
