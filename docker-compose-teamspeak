@@ -73,15 +73,15 @@ _parseCredentials() {
 
 _outputCredentials() {
     _parseCredentials
-    echo -e "\n   Teamspeak 3 Server Credentials        \n
+    echo -e "\n   Teamspeak 3 Server Credentials\n
     ----------------------------------------\n
-    Server Port : $TS_VOICE_PORT            \n
+    Server Port : $TS_VOICE_PORT            
     Server Admin Token : $SERVER_ADMIN_TOKEN\n
+    ----------------------------------------
+    Server Query                            
     ----------------------------------------\n
-    Server Query                            \n
-    ----------------------------------------\n
-    Port : $TS_QUERY_PORT                   \n
-    User : $SERVERQUERY_ADMIN_USER          \n
+    Port : $TS_QUERY_PORT                   
+    User : $SERVERQUERY_ADMIN_USER          
     Password : $SERVERQUERY_ADMIN_PASSWORD  \n
     ----------------------------------------\n
     File Transfert Port : $TS_FILE_PORT     \n
