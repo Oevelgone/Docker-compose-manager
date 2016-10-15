@@ -9,7 +9,7 @@ declare -r DEFAULT_TS_VOICE_PORT=9987
 declare -r DEFAULT_TS_QUERY_PORT=10011
 declare -r DEFAULT_TS_FILE_PORT=30033
 declare -r DEFAULT_TS_DNS_PORT=41144
-declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down,command,logs[teamspeak|db]} [OPTIONS]"
+declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
 
 declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
 declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
@@ -61,6 +61,33 @@ _logs() {
     esac
 }
 
+_logsFinder() {
+    printf "$( ${DOCKER_CMD} logs | grep 'teamspeak_1' | grep $1 )"
+}
+
+_parseCredentials() {
+    SERVERQUERY_ADMIN_USER=$( _logsFinder loginname | awk -F \" '{print $2}' )
+    SERVERQUERY_ADMIN_PASSWORD=$( _logsFinder loginname | awk -F \" '{print $4}' )
+    SERVER_ADMIN_TOKEN=$( _logsFinder token | tail -n 1 | awk -F \= '{print $2}' | awk -F ' ' '{print $1}' )
+}
+
+_outputCredentials() {
+    _parseCredentials
+    echo -e "\n   Teamspeak 3 Server Credentials        \n
+    ----------------------------------------\n
+    Server Port : $TS_VOICE_PORT            \n
+    Server Admin Token : $SERVER_ADMIN_TOKEN\n
+    ----------------------------------------\n
+    Server Query                            \n
+    ----------------------------------------\n
+    Port : $TS_QUERY_PORT                   \n
+    User : $SERVERQUERY_ADMIN_USER          \n
+    Password : $SERVERQUERY_ADMIN_PASSWORD  \n
+    ----------------------------------------\n
+    File Transfert Port : $TS_FILE_PORT     \n
+"
+}
+
 _portDiff() {
     isnumber "$TS_VOICE_PORT" && : || _usage
     PORT_DIFF=$(( TS_VOICE_PORT - DEFAULT_TS_VOICE_PORT ))
@@ -95,10 +122,12 @@ case $ACTION in
         _up;;
     down)
         _down;;
-    command)
+    cmd)
         _command;;
     logs)
         _logs $ARGS;;
+    cred)
+        _outputCredentials;;
     *)
         _usage;;
 esac
