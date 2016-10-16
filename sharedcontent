@@ -21,3 +21,20 @@ _usage() {
     [[ -z "${USAGE_MESSAGE// }" ]] && echo "Undefined variable \$USAGE_MESSAGE in `basename "$0"`." || echo "Usage : `basename "$0"` $USAGE_MESSAGE"
     exit 1
 }
+
+_listDockerContainers() {
+    local CONTAINERS=( $( docker ps -a | grep "$1"_ | tr " " _ ) )
+    for c in ${CONTAINERS[@]}; do
+        local STATUS=$( printf $c | awk -F '_[_]+' '{print $5}' | tr "_" " " )
+        if [[ $STATUS =~ ^Exited.* ]]; then
+            local INSTANCE=$( printf $c | awk -F '_[_]+' '{print $6}' | sed -r 's/^.{9}//' | awk -F '_' '{print $1}' )
+        else
+            local INSTANCE=$( printf $c | awk -F '_[_]+' '{print $7}' | sed -r 's/^.{9}//' | awk -F '_' '{print $1}' )
+        fi
+        
+        echo "Server $INSTANCE -- Status : $STATUS"
+
+    done
+#	docker ps -a | grep "$1"_ | awk -F '[[:space:]][[:space:]]+' '{print $7"_"$5}' | sed -r 's/^.{9}//' | awk -F '_' '{print "Server "$1" -- Status : "$4}'
+    exit 0
+}

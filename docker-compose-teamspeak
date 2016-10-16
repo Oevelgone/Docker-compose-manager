@@ -9,7 +9,7 @@ declare -r DEFAULT_TS_VOICE_PORT=9987
 declare -r DEFAULT_TS_QUERY_PORT=10011
 declare -r DEFAULT_TS_FILE_PORT=30033
 declare -r DEFAULT_TS_DNS_PORT=41144
-declare -r USAGE_MESSAGE="\$VOICE_PORT (default:9987) {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
+declare -r USAGE_MESSAGE="[list|\$VOICE_PORT (default:9987)] {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
 
 declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
 declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
@@ -19,10 +19,16 @@ declare -i PORT_DIFF
 
 ## PARSING ARGS ##
 
-TS_VOICE_PORT=$1
-ACTION=$2
-shift 2
-ARGS=$@
+if [ "$1" == "list" ] ; then
+    _listDockerContainers "teamspeak"
+elif isnumber $1 ; then
+    TS_VOICE_PORT=$1
+    ACTION=$2
+    shift 2
+    ARGS=$@
+else
+    _usage
+fi
 
 ## FUNCTIONS ##
 
@@ -42,10 +48,6 @@ _up() {
 
 _down() {
     ${DOCKER_CMD} down ${ARGS}
-}
-
-_command() {
-    ${DOCKER_CMD} ${ARGS}
 }
 
 _logs() {
@@ -88,6 +90,10 @@ _outputCredentials() {
 "
 }
 
+_command() {
+    ${DOCKER_CMD} ${ARGS}
+}
+
 _portDiff() {
     isnumber "$TS_VOICE_PORT" && : || _usage
     PORT_DIFF=$(( TS_VOICE_PORT - DEFAULT_TS_VOICE_PORT ))
@@ -122,12 +128,12 @@ case $ACTION in
         _up;;
     down)
         _down;;
-    cmd)
-        _command;;
     logs)
         _logs $ARGS;;
     cred)
         _outputCredentials;;
+    cmd)
+        _command;;
     *)
         _usage;;
 esac
