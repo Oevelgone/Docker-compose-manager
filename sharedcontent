@@ -11,6 +11,10 @@ declare -r PROJECT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 declare -r SHAREDCONTENT_FILE="${PROJECT_DIRECTORY}/`basename "${BASH_SOURCE[@]}"`"
 declare -r DOCKERCOMPOSE_FILE="${PROJECT_DIRECTORY}/docker-compose.yml"
 
+## Includes ##
+
+. ${PROJECT_DIRECTORY}/config/settings.conf
+
 ## Check Functions ##
 
 isnumber() {
@@ -32,9 +36,20 @@ _listDockerContainers() {
             local INSTANCE=$( printf $c | awk -F '_[_]+' '{print $7}' | sed -r 's/^.{9}//' | awk -F '_' '{print $1}' )
         fi
         
-        echo "Server $INSTANCE -- Status : $STATUS"
-
+        if [ "$2" == "export" ]; then
+            INSTANCES_ARRAY+=("$INSTANCE")
+        else
+            echo "Server $INSTANCE -- Status : $STATUS"
+        fi
     done
-#	docker ps -a | grep "$1"_ | awk -F '[[:space:]][[:space:]]+' '{print $7"_"$5}' | sed -r 's/^.{9}//' | awk -F '_' '{print "Server "$1" -- Status : "$4}'
-    exit 0
+    
+    if [ ! "$2" == "export" ]; then
+        exit 0
+    fi
+}
+
+containsElement () { # containsElement "ELEMENT" "${ARRAY[@]}"
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
 }

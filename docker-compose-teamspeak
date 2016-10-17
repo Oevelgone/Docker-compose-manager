@@ -19,8 +19,21 @@ declare -i PORT_DIFF
 
 ## PARSING ARGS ##
 
-if [ "$1" == "list" ] ; then
+if [ "$1" == "list" ]; then
     _listDockerContainers "teamspeak"
+elif [ "$1" == "up" ]; then
+    declare -a INSTANCES_ARRAY
+    _listDockerContainers "teamspeak" "export"
+    for i in `seq ${PORT_RANGE[0]} 1 ${PORT_RANGE[1]}`
+    do
+        if ! containsElement "$i" "${INSTANCES_ARRAY[@]}"; then
+            TS_VOICE_PORT=$i
+            ACTION="up"
+            shift
+            ARGS=$@
+            break
+        fi
+    done
 elif isnumber $1 ; then
     TS_VOICE_PORT=$1
     ACTION=$2
