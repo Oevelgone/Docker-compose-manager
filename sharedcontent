@@ -7,13 +7,15 @@ set +v  # Shell input lines as they are read
 
 ## Global Variables ##
 
-declare -r PROJECT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-declare -r SHAREDCONTENT_FILE="${PROJECT_DIRECTORY}/`basename "${BASH_SOURCE[@]}"`"
-declare -r DOCKERCOMPOSE_FILE="${PROJECT_DIRECTORY}/docker-compose.yml"
+declare -r PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+declare -r SHAREDCONTENT_FILE="${PROJECT_PATH}/`basename "${BASH_SOURCE[@]}"`"
+declare -r DOCKERCOMPOSE_FILE="${PROJECT_PATH}/docker-compose.yml"
+declare -r CONFIG_PATH="${PROJECT_PATH}/config"
+declare -r RELATIVE_SETTINGS_FILE_PATH="config/settings.conf"
 
 ## Includes ##
 
-. ${PROJECT_DIRECTORY}/config/settings.conf
+. ${PROJECT_PATH}/${RELATIVE_SETTINGS_FILE_PATH}
 
 ## Check Functions ##
 
@@ -22,7 +24,7 @@ isnumber() {
 }
 
 _usage() {
-    [[ -z "${USAGE_MESSAGE// }" ]] && echo "Undefined variable \$USAGE_MESSAGE in `basename "$0"`." || echo "Usage : `basename "$0"` $USAGE_MESSAGE"
+    [[ -z "${USAGE_MESSAGE// }" ]] && echo "Undefined variable \$USAGE_MESSAGE in `basename "$0"`." || echo -e "Usage : `basename "$0"` $USAGE_MESSAGE"
     exit 1
 }
 

@@ -9,7 +9,7 @@ declare -r DEFAULT_TS_VOICE_PORT=9987
 declare -r DEFAULT_TS_QUERY_PORT=10011
 declare -r DEFAULT_TS_FILE_PORT=30033
 declare -r DEFAULT_TS_DNS_PORT=41144
-declare -r USAGE_MESSAGE="[list|\$VOICE_PORT (default:9987)] {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
+declare USAGE_MESSAGE="[list|\$VOICE_PORT (default:9987)] {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
 
 declare -i TS_VOICE_PORT=${DEFAULT_TS_VOICE_PORT}
 declare -i TS_QUERY_PORT=${DEFAULT_TS_QUERY_PORT}
@@ -32,6 +32,8 @@ elif [ "$1" == "up" ]; then
             shift
             ARGS=$@
             break
+        elif [ $i == ${PORT_RANGE[1]} ]; then
+            USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.\n Stop a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
         fi
     done
 elif isnumber $1 ; then
