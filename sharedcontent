@@ -7,7 +7,6 @@ set +v  # Shell input lines as they are read
 
 ## Global Variables ##
 
-declare -r PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 declare -r SHAREDCONTENT_FILE="${PROJECT_PATH}/`basename "${BASH_SOURCE[@]}"`"
 declare -r DOCKERCOMPOSE_FILE="${PROJECT_PATH}/docker-compose.yml"
 declare -r CONFIG_PATH="${PROJECT_PATH}/config"
