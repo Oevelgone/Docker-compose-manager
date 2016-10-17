@@ -45,6 +45,10 @@ elif [ "$1" == "up" ]; then
             USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.\n Stop a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
         fi
     done
+elif [ "$1" == "cmd" ]; then
+    ACTION="cmd"
+    shift
+    ARGS=$@
 elif isnumber $1 ; then
     TS_VOICE_PORT=$1
     ACTION=$2
@@ -59,19 +63,19 @@ fi
 declare -r DOCKER_CMD="docker-compose -f ${DOCKERCOMPOSE_FILE} -p teamspeak-${TS_VOICE_PORT}"
 
 _start() {
-    ${DOCKER_CMD} start ${ARGS}
+    ${DOCKER_CMD} start $1
 }
 
 _stop() {
-    ${DOCKER_CMD} stop ${ARGS}
+    ${DOCKER_CMD} stop $1
 }
 
 _up() {
-    ${DOCKER_CMD} up ${ARGS}
+    ${DOCKER_CMD} up $1
 }
 
 _down() {
-    ${DOCKER_CMD} down ${ARGS}
+    ${DOCKER_CMD} down $1
 }
 
 _logs() {
@@ -115,7 +119,7 @@ _outputCredentials() {
 }
 
 _command() {
-    ${DOCKER_CMD} ${ARGS}
+    ${DOCKER_CMD} $1
 }
 
 _portDiff() {
@@ -143,21 +147,21 @@ _exportENV
 
 case $ACTION in
     start)
-        _start;;
+        _start ${ARGS};;
     stop)
-        _stop;;
+        _stop ${ARGS};;
     restart)
-        _stop && _start;;
+        _stop ${ARGS} && _start ${ARGS};;
     up)
-        _up;;
+        _up ${ARGS};;
     down)
-        _down;;
+        _down ${ARGS};;
     logs)
-        _logs $ARGS;;
+        _logs ${ARGS};;
     cred)
         _outputCredentials;;
     cmd)
-        _command;;
+        _command ${ARGS};;
     *)
         _usage;;
 esac
