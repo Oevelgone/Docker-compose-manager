@@ -126,7 +126,8 @@ for p in ${FIRST_PARAM[@]}; do
                 fi
                 break
             elif [ $i == ${PORT_RANGE[1]} ]; then
-                USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.\n Stop a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
+                USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.
+Down a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
             fi
         done
     elif [ "$p" == "cmd" ]; then
