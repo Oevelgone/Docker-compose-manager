@@ -3,9 +3,9 @@
 # Resolving Project Path
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  PROJECT_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    PROJECT_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 declare -r PROJECT_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
@@ -26,41 +26,7 @@ declare -i TS_FILE_PORT=${DEFAULT_TS_FILE_PORT}
 declare -i TS_DNS_PORT=${DEFAULT_TS_DNS_PORT}
 declare -i PORT_DIFF
 
-## PARSING ARGS ##
-
-if [ "$1" == "list" ]; then
-    _listDockerContainers "teamspeak"
-elif [ "$1" == "up" ]; then
-    declare -a INSTANCES_ARRAY
-    _listDockerContainers "teamspeak" "export"
-    for i in `seq ${PORT_RANGE[0]} 1 ${PORT_RANGE[1]}`
-    do
-        if ! containsElement "$i" "${INSTANCES_ARRAY[@]}"; then
-            TS_VOICE_PORT=$i
-            ACTION="up"
-            shift
-            ARGS=$@
-            break
-        elif [ $i == ${PORT_RANGE[1]} ]; then
-            USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.\n Stop a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
-        fi
-    done
-elif [ "$1" == "cmd" ]; then
-    ACTION="cmd"
-    shift
-    ARGS=$@
-elif isnumber $1 ; then
-    TS_VOICE_PORT=$1
-    ACTION=$2
-    shift 2
-    ARGS=$@
-else
-    _usage
-fi
-
 ## FUNCTIONS ##
-
-declare -r DOCKER_CMD="docker-compose -f ${DOCKERCOMPOSE_FILE} -p teamspeak-${TS_VOICE_PORT}"
 
 _start() {
     ${DOCKER_CMD} start $1
@@ -115,7 +81,7 @@ _outputCredentials() {
     Password : $SERVERQUERY_ADMIN_PASSWORD  \n
     ----------------------------------------\n
     File Transfert Port : $TS_FILE_PORT     \n
-"
+    "
 }
 
 _command() {
@@ -139,29 +105,75 @@ _exportENV() {
     export TS_FILE_PORT
     export TS_DNS_PORT
 }
+## PARSING ARGS ##
 
-## INIT ##
+declare -r FIRST_PARAM=($( eval echo $1 ))
 
-_portDiff && _updatePorts
-_exportENV
+for p in ${FIRST_PARAM[@]}; do
+    if [ "$p" == "list" ]; then
+        _listDockerContainers "teamspeak"
+    elif [ "$p" == "up" ]; then
+        declare -a INSTANCES_ARRAY
+        _listDockerContainers "teamspeak" "export"
+        for i in `seq ${PORT_RANGE[0]} 1 ${PORT_RANGE[1]}`
+        do
+            if ! containsElement "$i" "${INSTANCES_ARRAY[@]}"; then
+                TS_VOICE_PORT=$i
+                ACTION="up"
+                shift
+                if [ -z $ARGS ]; then
+                    ARGS=$@
+                fi
+                break
+            elif [ $i == ${PORT_RANGE[1]} ]; then
+                USAGE_MESSAGE="up has no more available port in range ${PORT_RANGE[0]}-${PORT_RANGE[1]}.\n Stop a server or enhance \$PORT_RANGE in $RELATIVE_SETTINGS_FILE_PATH."
+            fi
+        done
+    elif [ "$p" == "cmd" ]; then
+        ACTION="cmd"
+        shift
+        if [ -z $ARGS ]; then
+            ARGS=$@
+        fi
+    elif isnumber $p ; then
+        TS_VOICE_PORT=$p
+        if [ -z $ACTION ]; then
+            ACTION=$2
+        fi
+        shift 2
+        if [ -z $ARGS ]; then
+            ARGS=$@
+        fi
+    else
+        _usage
+    fi
 
-case $ACTION in
-    start)
-        _start ${ARGS};;
-    stop)
-        _stop ${ARGS};;
-    restart)
-        _stop ${ARGS} && _start ${ARGS};;
-    up)
-        _up ${ARGS};;
-    down)
-        _down ${ARGS};;
-    logs)
-        _logs ${ARGS};;
-    cred)
-        _outputCredentials;;
-    cmd)
-        _command ${ARGS};;
-    *)
-        _usage;;
-esac
+    declare DOCKER_CMD="docker-compose -f ${DOCKERCOMPOSE_FILE} -p teamspeak-${TS_VOICE_PORT}"
+
+    ## INIT ##
+
+    _portDiff && _updatePorts
+    _exportENV
+
+    case $ACTION in
+        start)
+            _start ${ARGS};;
+        stop)
+            _stop ${ARGS};;
+        restart)
+            _stop ${ARGS} && _start ${ARGS};;
+        up)
+            _up ${ARGS};;
+        down)
+            _down ${ARGS};;
+        logs)
+            _logs ${ARGS};;
+        cred)
+            _outputCredentials;;
+        cmd)
+            _command ${ARGS};;
+        *)
+            _usage;;
+    esac
+done
+
