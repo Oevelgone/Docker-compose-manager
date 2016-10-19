@@ -16,10 +16,10 @@ services:
     links:
       - db
     ports:
-      - "${TS_VOICE_PORT}:9987/udp"
-      - "${TS_FILE_PORT}:30033"
-      - "${TS_QUERY_PORT}:10011"
-      - "${TS_DNS_PORT}:41144"
+      - "${TEAMSPEAK_VOICE_PORT}:9987/udp"
+      - "${TEAMSPEAK_FILE_PORT}:30033"
+      - "${TEAMSPEAK_QUERY_PORT}:10011"
+      - "${TEAMSPEAK_DNS_PORT}:41144"
     restart: always
     environment:
       TS_DB_HOST: db

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# CONFIGURABLE VARIABLES #
+
+declare -A port_list=( [voice]=9987 [query]=10011 [file]=30033 [dns]=41144 [primary]="voice" )
+declare -a primary_port_range=(9987 9999)
+
+## VARIABLES ##
+
+_evalPortList 'DEFAULT_${module_name^^}_${key^^}_PORT=${port_list[$key]}'
+_evalPortList '${module_name^^}_${key^^}_PORT=${port_list[$key]}'
+
+eval "declare -ri DEFAULT_PRIMARY_PORT=\${DEFAULT_${module_name^^}_${port_list[primary]^^}_PORT}"
+declare -i PRIMARY_PORT=${DEFAULT_PRIMARY_PORT}
+
+declare usage_message="[list|\$VOICE_PORT (default:9987)] {start,stop,restart,up,down,logs[teamspeak|db],cred,cmd} [OPTIONS]"
+
+## FUNCTIONS ##
+
+_logs() {
+    case $1 in
+        teamspeak)
+            shift
+            ${docker_cmd} logs $@ | grep 'teamspeak_1';;
+        db)
+            shift
+            ${docker_cmd} logs $@ | grep 'db_1';;
+        *)
+            ${docker_cmd} logs $@;;
+    esac
+}
+
+_parseCredentials() {
+    serverquery_admin_user=$( _logsFinder loginname | awk -F \" '{print $2}' )
+    serverquery_admin_password=$( _logsFinder loginname | awk -F \" '{print $4}' )
+    server_admin_token=$( _logsFinder token | tail -n 1 | awk -F \= '{print $2}' | awk -F ' ' '{print $1}' )
+}
+
+_outputCredentials() {
+    _parseCredentials
+    echo -e "\n    Teamspeak 3 Server Credentials\n
+    ----------------------------------------\n
+    Server Port : $TS_VOICE_PORT            
+    Server Admin Token : $server_admin_token\n
+    ----------------------------------------
+    Server Query                            
+    ----------------------------------------\n
+    Port : $TS_QUERY_PORT                   
+    User : $serverquery_admin_user          
+    Password : $serverquery_admin_password  \n
+    ----------------------------------------\n
+    File Transfert Port : $TS_FILE_PORT     \n
+    "
+}

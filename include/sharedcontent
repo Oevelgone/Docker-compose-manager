@@ -7,23 +7,19 @@ set +v  # Shell input lines as they are read
 
 ## Global Variables ##
 
-declare -r SHAREDCONTENT_FILE="${PROJECT_PATH}/`basename "${BASH_SOURCE[@]}"`"
+declare -r SHAREDCONTENT_FILE="${INCLUDE_PATH}/`basename "${BASH_SOURCE[@]}"`"
 declare -r DOCKERCOMPOSE_FILE="${PROJECT_PATH}/docker-compose.yml"
-declare -r CONFIG_PATH="${PROJECT_PATH}/config"
-declare -r RELATIVE_SETTINGS_FILE_PATH="config/settings.conf"
+declare -r MODULE_PATH="${PROJECT_PATH}/module"
 
-## Includes ##
-
-. ${PROJECT_PATH}/${RELATIVE_SETTINGS_FILE_PATH}
-
-## Check Functions ##
-
-isnumber() {
-    [[ "$1" =~ ^-?[0-9]+$ ]]
-}
+## Global Functions ##
 
 _usage() {
-    [[ -z "${USAGE_MESSAGE// }" ]] && echo "Undefined variable \$USAGE_MESSAGE in `basename "$0"`." || echo -e "Usage : `basename "$0"` $USAGE_MESSAGE"
+    [[ -z "${usage_message// }" ]] && echo "Undefined variable \$usage_message in \"${module_name}\" module." || echo -e "Usage : `basename "$0"` $usage_message"
+    exit 1
+}
+
+_error() {
+    [[ -z "${1// }" ]] && echo "Undefined error, exit." 1>&2 || echo -e "Error : `basename "$0"` $1" 1>&2
     exit 1
 }
 
@@ -36,21 +32,42 @@ _listDockerContainers() {
         else
             local INSTANCE=$( printf $c | awk -F '_[_]+' '{print $7}' | sed -r 's/^.{9}//' | awk -F '_' '{print $1}' )
         fi
-        
+
         if [ "$2" == "export" ]; then
-            INSTANCES_ARRAY+=("$INSTANCE")
+            instances_array+=("$INSTANCE")
         else
             echo "Server $INSTANCE -- Status : $STATUS"
         fi
     done
-    
+
     if [ ! "$2" == "export" ]; then
         exit 0
     fi
 }
 
-containsElement () { # containsElement "ELEMENT" "${ARRAY[@]}"
-  local e
-  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
-  return 1
+_evalPortList() {
+    for key in "${!port_list[@]}"
+    do
+        if [ "$key" != "primary" ]; then
+            eval "export $1"
+        fi
+    done
+}
+
+isnumber() { # isnumber "${VAR}"
+    [[ "$1" =~ ^-?[0-9]+$ ]]
+}
+
+function_exist() {
+    if [ -n "$(type -t $1)" ] && [ "$(type -t $1)" = function ]; then 
+        return 0
+    else
+        return 1
+    fi
+}
+
+containsElement() { # containsElement "ELEMENT" "${ARRAY[@]}"
+    local e
+    for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+    return 1
 }
