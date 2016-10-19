@@ -1,16 +1,5 @@
 #!bin/bash
 
-## Debug options ##
-# If this options are set to - instead of +, debug option is active
-set +x  # Command traces before executing commands
-set +v  # Shell input lines as they are read
-
-## Global Variables ##
-
-declare -r SHAREDCONTENT_FILE="${INCLUDE_PATH}/`basename "${BASH_SOURCE[@]}"`"
-declare -r DOCKERCOMPOSE_FILE="${PROJECT_PATH}/docker-compose.yml"
-declare -r MODULE_PATH="${PROJECT_PATH}/module"
-
 ## Global Functions ##
 
 _usage() {
@@ -70,4 +59,57 @@ containsElement() { # containsElement "ELEMENT" "${ARRAY[@]}"
     local e
     for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
     return 1
+}
+
+_start() {
+    ${docker_cmd} start $1
+}
+
+_stop() {
+    ${docker_cmd} stop $1
+}
+
+_up() {
+    ${docker_cmd} up $1
+}
+
+_down() {
+    ${docker_cmd} down $1
+}
+
+if ! function_exist "_logs"; then
+    _logs() {
+        ${docker_cmd} logs $1
+    }
+fi
+
+_logsFinder() {
+    printf "$( ${docker_cmd} logs | grep ${module_name}'_' | grep $1 )"
+}
+
+_command() {
+    ${docker_cmd} $1
+}
+
+_portDiff() {
+    isnumber "$PRIMARY_PORT" && : || _usage
+    port_diff=$(( PRIMARY_PORT - DEFAULT_PRIMARY_PORT ))
+}
+
+_updatePorts() {
+    _evalPortList '${module_name^^}_${key^^}_PORT=$(( ${port_list[$key]} + port_diff ))'
+}
+
+_callCredentials() {
+    # Check if credentials functions exist
+
+    if ! function_exist "_parseCredentials"; then
+        _error "FATAL ERROR : Function _parseCredentials not defined in \"${module_name}\" module."
+    fi
+
+    if ! function_exist "_outputCredentials"; then
+        _error "FATAL ERROR : Function _outputCredentials not defined in \"${module_name}\" module."
+    fi
+
+    _outputCredentials
 }

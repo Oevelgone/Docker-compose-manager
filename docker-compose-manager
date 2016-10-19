@@ -1,5 +1,10 @@
 #!/bin/bash
 
+## Debug options ##
+# If this options are set to - instead of +, debug option is active
+set +x  # Command traces before executing commands
+set +v  # Shell input lines as they are read
+
 # Resolving Project Path
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -10,73 +15,28 @@ done
 declare -r PROJECT_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 declare -r INCLUDE_PATH="${PROJECT_PATH}/include"
 
+## FUNCTIONS ##
+
 # Include functions file
-. ${INCLUDE_PATH}/sharedcontent
-
-# Define with module is to use
-
-[[ -z $1 ]] && _usage
-
-if [ -e "${MODULE_PATH}/${1}" ]; then
-    module_name="$1"
-    shift
-    . ${MODULE_PATH}/${module_name}
-else
-    _usage
-fi
+. ${INCLUDE_PATH}/sharedfunctions
 
 ## VARIABLES ##
 
 declare -i port_diff=0
 
-## FUNCTIONS ##
+# Define which module is to use
 
-_start() {
-    ${docker_cmd} start $1
-}
+[[ -z $1 ]] && _error "Undefined module."
 
-_stop() {
-    ${docker_cmd} stop $1
-}
-
-_up() {
-    ${docker_cmd} up $1
-}
-
-_down() {
-    ${docker_cmd} down $1
-}
-
-if ! function_exist "_logs"; then
-    _logs() {
-        ${docker_cmd} logs $1
-    }
+if [ -e "${PROJECT_PATH}/module/${1}" ]; then
+    module_name="$1"
+    shift
+    declare -r MODULE_PATH="${PROJECT_PATH}/module/${module_name}"
+    . ${MODULE_PATH}/${module_name}_mod
+    declare -r DOCKERCOMPOSE_FILE="${MODULE_PATH}/docker-compose.yml"
+else
+    _error "Unknown module $1."
 fi
-
-_logsFinder() {
-    printf "$( ${docker_cmd} logs | grep ${module_name}'_' | grep $1 )"
-}
-
-if ! function_exist "_parseCredentials"; then
-    _error "FATAL ERROR : Function _parseCredentials not defined in \"${module_name}\" module."
-fi
-
-if ! function_exist "_outputCredentials"; then
-    _error "FATAL ERROR : Function _outputCredentials not defined in \"${module_name}\" module."
-fi
-
-_command() {
-    ${docker_cmd} $1
-}
-
-_portDiff() {
-    isnumber "$PRIMARY_PORT" && : || _usage
-    port_diff=$(( PRIMARY_PORT - DEFAULT_PRIMARY_PORT ))
-}
-
-_updatePorts() {
-    _evalPortList '${module_name^^}_${key^^}_PORT=$(( ${port_list[$key]} + port_diff ))'
-}
 
 ## PARSING ARGS ##
 
@@ -100,7 +60,7 @@ for p in ${first_param[@]}; do
                 break
             elif [ $i == ${primary_port_range[1]} ]; then
                 usage_message="up has no more available port in range ${primary_port_range[0]}-${primary_port_range[1]}.
-                Down a server or enhance \$primary_port_range in $MODULE_PATH."
+                Down a server or enhance \$primary_port_range in $MODULE_PATH/${module_name}."
             fi
         done
     elif [ "$p" == "cmd" ]; then
@@ -142,7 +102,7 @@ for p in ${first_param[@]}; do
         logs)
             _logs ${args};;
         cred)
-            _outputCredentials;;
+            _callCredentials;;
         cmd)
             _command ${args};;
         *)
