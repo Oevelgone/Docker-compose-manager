@@ -61,21 +61,29 @@ containsElement() { # containsElement "ELEMENT" "${ARRAY[@]}"
     return 1
 }
 
-_start() {
-    ${docker_cmd} start $1
-}
+if ! function_exist "_start"; then
+    _start() {
+        ${docker_cmd} start $1
+    }
+fi
 
-_stop() {
-    ${docker_cmd} stop $1
-}
+if ! function_exist "_stop"; then
+    _stop() {
+        ${docker_cmd} stop $1
+    }
+fi
 
-_up() {
-    ${docker_cmd} up $1
-}
+if ! function_exist "_up"; then
+    _up() {
+        ${docker_cmd} up $1
+    }
+fi
 
-_down() {
-    ${docker_cmd} down $1
-}
+if ! function_exist "_down"; then
+    _down() {
+        ${docker_cmd} down $1
+    }
+fi
 
 if ! function_exist "_logs"; then
     _logs() {
@@ -83,12 +91,14 @@ if ! function_exist "_logs"; then
     }
 fi
 
-_logsFinder() {
-    printf "$( ${docker_cmd} logs | grep ${module_name}'_' | grep $1 )"
-}
-
+if ! function_exist "_command"; then
 _command() {
     ${docker_cmd} $1
+}
+fi
+
+_logsFinder() {
+    printf "$( ${docker_cmd} logs | grep ${module_name}'_' | grep $1 )"
 }
 
 _portDiff() {

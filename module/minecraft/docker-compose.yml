@@ -1,0 +1,26 @@
+version: '2'
+services:
+    data:
+        image: busybox:latest
+        volumes:
+            - /data
+        command: /bin/echo
+
+    minecraft:
+        image: itzg/minecraft-server
+        volumes_from:
+            - data
+        ports:
+            - "${MINECRAFT_MAIN_PORT}:25565"
+        restart: always
+        environment:
+            EULA: "TRUE"
+    
+    pureftpd:
+        image: vimagick/pure-ftpd
+        volumes_from:
+            - data
+        ports:
+            - "${MINECRAFT_FTP_PORT}:21"
+        privileged: true
+        restart: always

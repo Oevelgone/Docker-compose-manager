@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# CONFIGURABLE VARIABLES #
+
+declare -A port_list=( [main]=25565 [ftp]=26000 [primary]="main" )
+declare -a primary_port_range=(25565 25664)
+
+## VARIABLES ##
+
+_evalPortList 'DEFAULT_${module_name^^}_${key^^}_PORT=${port_list[$key]}'
+_evalPortList '${module_name^^}_${key^^}_PORT=${port_list[$key]}'
+
+eval "declare -ri DEFAULT_PRIMARY_PORT=\${DEFAULT_${module_name^^}_${port_list[primary]^^}_PORT}"
+declare -i PRIMARY_PORT=${DEFAULT_PRIMARY_PORT}
+
+declare usage_message="[list|\$VOICE_PORT (default:25565)] {start,stop,restart,up,down,logs[minecraft],cred,cmd} [OPTIONS]"
+
+## FUNCTIONS ##
+
+_logs() {
+    case $1 in
+        minecraft)
+            shift
+            ${docker_cmd} logs $@ | grep 'minecraft_';;
+        pureftpd)
+            shift
+            ${docker_cmd} logs $@ | grep 'pureftpd_';;
+        data)
+            shift
+            ${docker_cmd} logs $@ | grep 'data_';;
+        *)
+            ${docker_cmd} logs $@;;
+    esac
+}
+
+_parseCredentials() {
+    :
+}
+
+_outputCredentials() {
+    _parseCredentials
+    :
+}
+
+_up() {
+declare -r FTP_PASSWORD=`< /dev/urandom tr -dc A-Za-z0-9 | head -c12`
+${docker_cmd} up -d $1
+/usr/bin/docker exec -i ${module_name}${PRIMARY_PORT}_pureftpd_1 pure-pw useradd ${module_name}_${PRIMARY_PORT} -u ftpuser -d /data -t 1024 -T 1024 -y 1 -m << EOF
+${FTP_PASSWORD}
+${FTP_PASSWORD}
+EOF
+/usr/bin/docker exec -i ${module_name}${PRIMARY_PORT}_pureftpd_1 echo "Created user=${module_name}_${PRIMARY_PORT} with password=${FTP_PASSWORD}"
+}
